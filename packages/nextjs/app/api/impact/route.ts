@@ -1,7 +1,6 @@
+import { NextRequest } from "next/server";
 import csv from "csv-parser";
 import fs from "fs";
-import type { NextApiResponse } from "next";
-import { NextRequest } from "next/server";
 import path from "path";
 import { DataSet, ImpactVectors, RetroPGF3Results } from "~~/app/types/data";
 
@@ -12,12 +11,12 @@ interface VectorWeight {
   weight: number;
 }
 
-export async function GET(req: NextRequest, res: NextApiResponse) {
+export async function GET(req: NextRequest) {
   const searchParams = req.nextUrl.searchParams;
   const { vector, weight } = Object.fromEntries([...searchParams.entries()]);
 
   if (!vector || !weight) {
-    return res.status(400).json({ message: "No vectors received" });
+    return new Response(JSON.stringify({ message: "No vectors received" }), { status: 400 });
   }
 
   // Make sure they are both arrays
@@ -25,7 +24,9 @@ export async function GET(req: NextRequest, res: NextApiResponse) {
   const weights = [weight].flat() as string[];
 
   if (vectors.length !== weights.length) {
-    return res.status(400).json({ message: "You must pass the same quantity of vectors and weights." });
+    return new Response(JSON.stringify({ message: "You must pass the same quantity of vectors and weights." }), {
+      status: 400,
+    });
   }
 
   const vectorWeights: VectorWeight[] = [];
@@ -38,13 +39,13 @@ export async function GET(req: NextRequest, res: NextApiResponse) {
     const impact = await getImpact(vectorWeights);
 
     if (impact) {
-      res.status(200).json(impact);
+      return new Response(JSON.stringify(impact), { status: 200 });
     } else {
-      res.status(404).json({ message: "Vectors not found" });
+      return new Response(JSON.stringify({ message: "Vectors not found" }), { status: 404 });
     }
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: "Internal Server Error" });
+    return new Response(JSON.stringify({ message: "Internal Server Error" }), { status: 500 });
   }
 }
 
