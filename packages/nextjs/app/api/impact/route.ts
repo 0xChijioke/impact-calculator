@@ -12,8 +12,8 @@ interface VectorWeight {
 }
 
 export async function GET(req: NextRequest) {
-  const searchParams = req.nextUrl.searchParams;
-  const { vector, weight } = Object.fromEntries([...searchParams.entries()]);
+  const vector = req.nextUrl.searchParams.getAll("vector");
+  const weight = req.nextUrl.searchParams.getAll("weight");
 
   if (!vector || !weight) {
     return new Response(JSON.stringify({ message: "No vectors received" }), { status: 400 });
