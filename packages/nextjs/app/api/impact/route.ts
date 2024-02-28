@@ -1,6 +1,7 @@
 import csv from "csv-parser";
 import fs from "fs";
-import type { NextApiRequest, NextApiResponse } from "next";
+import type { NextApiResponse } from "next";
+import { NextRequest } from "next/server";
 import path from "path";
 import { DataSet, ImpactVectors, RetroPGF3Results } from "~~/app/types/data";
 
@@ -11,12 +12,10 @@ interface VectorWeight {
   weight: number;
 }
 
-export async function GET(req: NextApiRequest, res: NextApiResponse) {
-  if (req.method !== "GET") {
-    return res.status(405).json({ message: "Method not allowed." });
-  }
+export async function GET(req: NextRequest, res: NextApiResponse) {
+  const searchParams = req.nextUrl.searchParams;
+  const { vector, weight } = Object.fromEntries([...searchParams.entries()]);
 
-  const { vector, weight } = req.query;
   if (!vector || !weight) {
     return res.status(400).json({ message: "No vectors received" });
   }
